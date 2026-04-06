@@ -50,7 +50,7 @@ export function TaskDetailModal({ task, project, assignee, onEdit, onDelete, onC
       </div>
 
       <div className="form-actions">
-        <button className="btn btn-danger-outline" onClick={() => { onDelete(); onClose(); }}>삭제</button>
+        <button className="btn btn-danger-outline" onClick={onDelete}>삭제</button>
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-secondary" onClick={onClose}>닫기</button>
           <button className="btn btn-primary" onClick={onEdit}>수정</button>
