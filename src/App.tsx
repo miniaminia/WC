@@ -28,6 +28,14 @@ export default function App() {
 
   const closeModal = () => setModal({ type: 'none' });
 
+  if (state.loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontSize: 16, color: '#8891a4' }}>
+        불러오는 중...
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <Sidebar
