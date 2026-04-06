@@ -86,7 +86,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
           center: 'title',
           right: 'dayGridMonth,dayGridWeek',
         }}
-        buttonText={{ today: '오늘', month: '월', week: '주' }}
+        buttonText={{ today: '오늘', month: '월', week: '주', prev: '‹', next: '›' }}
         events={events}
         eventClick={handleEventClick}
         selectable
