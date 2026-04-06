@@ -5,6 +5,7 @@ const ROLE_LIGHTNESS_OFFSET: Record<Role, number> = {
   '기획': 0,
   '디자인': 18,
   '퍼블리싱': 36,
+  '오픈일': 0, // 오픈일은 아래에서 별도 처리
 };
 
 function hexToHsl(hex: string): [number, number, number] {
@@ -42,6 +43,7 @@ function hslToHex(h: number, s: number, l: number): string {
 }
 
 export function getRoleColor(baseHex: string, role: Role): string {
+  if (role === '오픈일') return '#1a1a1a';
   const [h, s, l] = hexToHsl(baseHex);
   const offset = ROLE_LIGHTNESS_OFFSET[role];
   const newL = Math.min(l + offset, 85);
