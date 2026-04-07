@@ -5,7 +5,7 @@ import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg } from 
 import type { Task, Project, Member, FilterState } from '../types';
 import { getRoleColor, getTextColor } from '../utils/colorUtils';
 import { toFCEnd, toInclusiveEnd } from '../utils/dateUtils';
-import { isHoliday, isWeekend } from '../utils/holidays';
+import { isHoliday, isWeekend, getWorkdaySegments } from '../utils/holidays';
 
 interface Props {
   tasks: Task[];
@@ -27,17 +27,14 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     return roleOk && projectOk;
   });
 
-  const events = filteredTasks.map(task => {
+  const events = filteredTasks.flatMap(task => {
     const project = projectMap[task.projectId];
     const bgColor = project ? getRoleColor(project.color, task.role) : '#999';
     const textColor = getTextColor(bgColor);
     const assignee = memberMap[task.assigneeId];
 
-    return {
-      id: task.id,
+    const base = {
       title: task.title,
-      start: task.start,
-      end: toFCEnd(task.end),
       allDay: true,
       backgroundColor: bgColor,
       borderColor: bgColor,
@@ -49,6 +46,21 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         projectName: project?.name ?? '',
       },
     };
+
+    const segments = getWorkdaySegments(task.start, task.end);
+
+    if (segments.length <= 1) {
+      return [{ ...base, id: task.id, start: task.start, end: toFCEnd(task.end) }];
+    }
+
+    // 주말/공휴일 걸치는 경우: 업무일 구간별로 분리, 드래그 비활성화
+    return segments.map((seg, i) => ({
+      ...base,
+      id: `${task.id}_${i}`,
+      start: seg.start,
+      end: toFCEnd(seg.end),
+      editable: false,
+    }));
   });
 
   const handleEventClick = (info: EventClickArg) => {

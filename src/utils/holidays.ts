@@ -68,3 +68,32 @@ export function adjustEndToWorkday(date: string): string {
   }
   return toDateStr(d);
 }
+
+// 날짜 범위를 연속 업무일 구간으로 분리
+export function getWorkdaySegments(startStr: string, endStr: string): Array<{ start: string; end: string }> {
+  const segments: Array<{ start: string; end: string }> = [];
+  const end = new Date(endStr + 'T00:00:00');
+  const current = new Date(startStr + 'T00:00:00');
+  let segStart: string | null = null;
+
+  while (current <= end) {
+    const dateStr = toDateStr(current);
+    if (!isNonWorkday(dateStr)) {
+      if (!segStart) segStart = dateStr;
+    } else {
+      if (segStart) {
+        const prev = new Date(current);
+        prev.setDate(prev.getDate() - 1);
+        segments.push({ start: segStart, end: toDateStr(prev) });
+        segStart = null;
+      }
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  if (segStart) {
+    segments.push({ start: segStart, end: endStr });
+  }
+
+  return segments;
+}
