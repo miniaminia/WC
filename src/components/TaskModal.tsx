@@ -3,6 +3,7 @@ import type { Task, Project, Member, Role } from '../types';
 import { ROLES } from '../types';
 import { Modal } from './Modal';
 import { today } from '../utils/dateUtils';
+import { isNonWorkday, adjustStartToWorkday, adjustEndToWorkday } from '../utils/holidays';
 
 interface Props {
   existing?: Task;
@@ -19,8 +20,14 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
   const [projectId, setProjectId] = useState(existing?.projectId ?? defaultProjectId ?? projects[0]?.id ?? '');
   const [role, setRole] = useState<Role>(existing?.role ?? '기획');
   const [assigneeId, setAssigneeId] = useState(existing?.assigneeId ?? '');
-  const [start, setStart] = useState(existing?.start ?? defaultDate ?? today());
-  const [end, setEnd] = useState(existing?.end ?? defaultDate ?? today());
+  const [start, setStart] = useState(() => {
+    const d = existing?.start ?? defaultDate ?? today();
+    return isNonWorkday(d) ? adjustStartToWorkday(d) : d;
+  });
+  const [end, setEnd] = useState(() => {
+    const d = existing?.end ?? defaultDate ?? today();
+    return isNonWorkday(d) ? adjustEndToWorkday(d) : d;
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const filteredMembers = members.filter(m => m.roles.includes(role));
@@ -122,7 +129,11 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
             type="date"
             className="form-input"
             value={start}
-            onChange={e => { setStart(e.target.value); setErrors(prev => ({ ...prev, end: '' })); }}
+            onChange={e => {
+              const val = e.target.value;
+              setStart(isNonWorkday(val) ? adjustStartToWorkday(val) : val);
+              setErrors(prev => ({ ...prev, end: '' }));
+            }}
           />
         </div>
         <div className="form-field">
@@ -132,7 +143,11 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
             className="form-input"
             value={end}
             min={start}
-            onChange={e => { setEnd(e.target.value); setErrors(prev => ({ ...prev, end: '' })); }}
+            onChange={e => {
+              const val = e.target.value;
+              setEnd(isNonWorkday(val) ? adjustEndToWorkday(val) : val);
+              setErrors(prev => ({ ...prev, end: '' }));
+            }}
           />
           {errors.end && <p className="form-error">{errors.end}</p>}
         </div>

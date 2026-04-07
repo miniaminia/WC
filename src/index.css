@@ -296,6 +296,22 @@ html, body, #root {
   font-weight: 600;
 }
 
+/* 주말 */
+.fc .fc-daygrid-day.fc-day-weekend {
+  background: #f9f9f9 !important;
+}
+.fc .fc-daygrid-day.fc-day-weekend .fc-daygrid-day-number {
+  color: #bbb;
+}
+
+/* 공휴일 */
+.fc .fc-daygrid-day.fc-day-holiday {
+  background: #fff5f5 !important;
+}
+.fc .fc-daygrid-day.fc-day-holiday .fc-daygrid-day-number {
+  color: #ef4444;
+}
+
 /* ========== FAB ========== */
 .fab {
   position: fixed;

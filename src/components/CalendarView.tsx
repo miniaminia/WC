@@ -5,6 +5,7 @@ import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg } from 
 import type { Task, Project, Member, FilterState } from '../types';
 import { getRoleColor, getTextColor } from '../utils/colorUtils';
 import { toFCEnd, toInclusiveEnd } from '../utils/dateUtils';
+import { isHoliday, isWeekend } from '../utils/holidays';
 
 interface Props {
   tasks: Task[];
@@ -99,6 +100,15 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         height="100%"
         fixedWeekCount={false}
         showNonCurrentDates={false}
+        dayCellClassNames={(arg) => {
+          const y = arg.date.getFullYear();
+          const m = String(arg.date.getMonth() + 1).padStart(2, '0');
+          const d = String(arg.date.getDate()).padStart(2, '0');
+          const dateStr = `${y}-${m}-${d}`;
+          if (isHoliday(dateStr)) return ['fc-day-holiday'];
+          if (isWeekend(dateStr)) return ['fc-day-weekend'];
+          return [];
+        }}
       />
     </div>
   );
