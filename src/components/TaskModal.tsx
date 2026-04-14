@@ -38,6 +38,14 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
     }
   }, [role]);
 
+  // 오픈일 선택 시 제목에 프로젝트명 자동 입력
+  useEffect(() => {
+    if (!existing && role === '오픈일') {
+      const projectName = projects.find(p => p.id === projectId)?.name ?? '';
+      setTitle(projectName);
+    }
+  }, [role, projectId]);
+
   const validate = () => {
     const e: Record<string, string> = {};
     if (!title.trim()) e.title = '업무 제목을 입력해주세요.';
