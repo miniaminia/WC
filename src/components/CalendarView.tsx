@@ -108,7 +108,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         eventDrop={handleEventDrop}
         eventResize={handleEventChange}
         eventContent={renderEventContent}
-        dayMaxEvents={3}
+        dayMaxEvents={6}
         height="100%"
         fixedWeekCount={false}
         showNonCurrentDates={false}
