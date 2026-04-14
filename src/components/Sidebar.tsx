@@ -14,7 +14,7 @@ export function Sidebar({ projects, onAddProject, onEditProject, onDeleteProject
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <h1 className="sidebar-logo">📅 일정 캘린더</h1>
+        <h1 className="sidebar-logo">일정 캘린더</h1>
       </div>
 
       <div className="sidebar-section">
