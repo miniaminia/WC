@@ -1,7 +1,7 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg } from '@fullcalendar/core';
+import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg, DatesSetArg } from '@fullcalendar/core';
 import type { Task, Project, Member, FilterState } from '../types';
 import { getRoleColor, getTextColor } from '../utils/colorUtils';
 import { toFCEnd, toInclusiveEnd } from '../utils/dateUtils';
@@ -15,9 +15,10 @@ interface Props {
   onDateSelect: (date: string) => void;
   onTaskClick: (task: Task) => void;
   onTaskDrop: (taskId: string, start: string, end: string) => void;
+  onMonthChange: (year: number, month: number) => void;
 }
 
-export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop }: Props) {
+export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop, onMonthChange }: Props) {
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const memberMap = Object.fromEntries(members.map(m => [m.id, m]));
 
@@ -107,6 +108,10 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         editable
         eventDrop={handleEventDrop}
         eventResize={handleEventChange}
+        datesSet={(arg: DatesSetArg) => {
+          const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
+          onMonthChange(mid.getFullYear(), mid.getMonth() + 1);
+        }}
         eventContent={renderEventContent}
         dayMaxEvents={8}
         height="100%"

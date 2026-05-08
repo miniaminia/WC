@@ -1,13 +1,22 @@
-import type { FilterState, Project, Role } from '../types';
+import type { FilterState, Project, Task, Role } from '../types';
 import { ROLES } from '../types';
 
 interface Props {
   filters: FilterState;
   projects: Project[];
+  tasks: Task[];
+  viewMonth: { year: number; month: number };
   onChange: (filters: FilterState) => void;
 }
 
-export function FilterBar({ filters, projects, onChange }: Props) {
+export function FilterBar({ filters, projects, tasks, viewMonth, onChange }: Props) {
+  const { year, month } = viewMonth;
+  const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+  const monthEnd = `${year}-${String(month).padStart(2, '0')}-31`;
+  const activeProjectIds = new Set(
+    tasks.filter(t => t.start <= monthEnd && t.end >= monthStart).map(t => t.projectId)
+  );
+  const visibleProjects = projects.filter(p => activeProjectIds.has(p.id));
   const toggleRole = (role: Role) => {
     const roles = filters.roles.includes(role)
       ? filters.roles.filter(r => r !== role)
@@ -40,10 +49,10 @@ export function FilterBar({ filters, projects, onChange }: Props) {
         ))}
       </div>
 
-      {projects.length > 0 && (
+      {visibleProjects.length > 0 && (
         <div className="filter-group">
           <span className="filter-label">프로젝트</span>
-          {projects.map(p => (
+          {visibleProjects.map(p => (
             <button
               key={p.id}
               className={`filter-chip ${filters.projectIds.includes(p.id) ? 'active' : ''}`}

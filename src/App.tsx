@@ -25,6 +25,8 @@ type ModalState =
 export default function App() {
   const state = useAppState();
   const [modal, setModal] = useState<ModalState>({ type: 'none' });
+  const now = new Date();
+  const [viewMonth, setViewMonth] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 });
 
   const closeModal = () => setModal({ type: 'none' });
 
@@ -50,6 +52,8 @@ export default function App() {
         <FilterBar
           filters={state.filters}
           projects={state.projects}
+          tasks={state.tasks}
+          viewMonth={viewMonth}
           onChange={state.setFilters}
         />
         <CalendarView
@@ -60,6 +64,7 @@ export default function App() {
           onDateSelect={date => setModal({ type: 'addTask', date })}
           onTaskClick={task => setModal({ type: 'viewTask', task })}
           onTaskDrop={(taskId, start, end) => state.updateTask(taskId, { start, end })}
+          onMonthChange={(year, month) => setViewMonth({ year, month })}
         />
       </main>
 
