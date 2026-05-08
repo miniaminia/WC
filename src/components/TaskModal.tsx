@@ -70,18 +70,6 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
         </div>
       )}
 
-      <div className="form-field">
-        <label className="form-label">업무 제목 *</label>
-        <input
-          className={`form-input ${errors.title ? 'error' : ''}`}
-          value={title}
-          onChange={e => { setTitle(e.target.value); setErrors(prev => ({ ...prev, title: '' })); }}
-          placeholder="예: UI 와이어프레임 작성"
-          autoFocus
-        />
-        {errors.title && <p className="form-error">{errors.title}</p>}
-      </div>
-
       <div className="form-row">
         <div className="form-field">
           <label className="form-label">프로젝트 *</label>
@@ -110,6 +98,18 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
             ))}
           </select>
         </div>
+      </div>
+
+      <div className="form-field">
+        <label className="form-label">업무 제목 *</label>
+        <input
+          className={`form-input ${errors.title ? 'error' : ''}`}
+          value={title}
+          onChange={e => { setTitle(e.target.value); setErrors(prev => ({ ...prev, title: '' })); }}
+          placeholder="예: UI 와이어프레임 작성"
+          autoFocus
+        />
+        {errors.title && <p className="form-error">{errors.title}</p>}
       </div>
 
       <div className="form-field">
