@@ -4,6 +4,13 @@ import { ROLES } from '../types';
 import { Modal } from './Modal';
 import { today } from '../utils/dateUtils';
 import { isNonWorkday, adjustStartToWorkday, adjustEndToWorkday } from '../utils/holidays';
+import { generateProjectColor } from '../utils/colorUtils';
+
+const PALETTE = [
+  '#3B82F6', '#EF4444', '#10B981', '#F59E0B',
+  '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16',
+  '#F97316', '#6366F1', '#14B8A6', '#A855F7',
+];
 
 interface Props {
   existing?: Task;
@@ -12,10 +19,11 @@ interface Props {
   defaultDate?: string;
   defaultProjectId?: string;
   onSave: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onAddProject: (data: { name: string; color: string }) => Promise<Project>;
   onClose: () => void;
 }
 
-export function TaskModal({ existing, projects, members, defaultDate, defaultProjectId, onSave, onClose }: Props) {
+export function TaskModal({ existing, projects, members, defaultDate, defaultProjectId, onSave, onAddProject, onClose }: Props) {
   const [title, setTitle] = useState(existing?.title ?? '');
   const [projectId, setProjectId] = useState(existing?.projectId ?? defaultProjectId ?? projects[0]?.id ?? '');
   const [role, setRole] = useState<Role>(existing?.role ?? '기획');
@@ -30,6 +38,11 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const [showNewProject, setShowNewProject] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newColor, setNewColor] = useState(() => generateProjectColor(projects.map(p => p.color)));
+  const [newError, setNewError] = useState('');
+
   const filteredMembers = members.filter(m => m.roles.includes(role));
 
   useEffect(() => {
@@ -38,13 +51,31 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
     }
   }, [role]);
 
-  // 오픈일 선택 시 제목에 프로젝트명 자동 입력
   useEffect(() => {
     if (!existing && role === '오픈일') {
       const projectName = projects.find(p => p.id === projectId)?.name ?? '';
       setTitle(projectName);
     }
   }, [role, projectId]);
+
+  const handleProjectChange = (val: string) => {
+    if (val === '__new__') {
+      setShowNewProject(true);
+      setNewName('');
+      setNewColor(generateProjectColor(projects.map(p => p.color)));
+    } else {
+      setProjectId(val);
+      setErrors(prev => ({ ...prev, projectId: '' }));
+    }
+  };
+
+  const handleCreateProject = async () => {
+    if (!newName.trim()) { setNewError('이름을 입력해주세요.'); return; }
+    const project = await onAddProject({ name: newName.trim(), color: newColor });
+    setProjectId(project.id);
+    setShowNewProject(false);
+    setErrors(prev => ({ ...prev, projectId: '' }));
+  };
 
   const validate = () => {
     const e: Record<string, string> = {};
@@ -64,24 +95,19 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
 
   return (
     <Modal title={existing ? '일정 수정' : '새 일정 추가'} onClose={onClose} width={520}>
-      {projects.length === 0 && (
-        <div className="empty-hint">
-          먼저 프로젝트를 생성해주세요.
-        </div>
-      )}
-
       <div className="form-row">
         <div className="form-field">
           <label className="form-label">프로젝트 *</label>
           <select
             className={`form-select ${errors.projectId ? 'error' : ''}`}
-            value={projectId}
-            onChange={e => { setProjectId(e.target.value); setErrors(prev => ({ ...prev, projectId: '' })); }}
+            value={showNewProject ? '__new__' : projectId}
+            onChange={e => handleProjectChange(e.target.value)}
           >
             {projects.length === 0 && <option value="">프로젝트 없음</option>}
             {projects.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
             ))}
+            <option value="__new__">+ 새 프로젝트 추가</option>
           </select>
           {errors.projectId && <p className="form-error">{errors.projectId}</p>}
         </div>
@@ -100,6 +126,33 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
         </div>
       </div>
 
+      {showNewProject && (
+        <div className="inline-new-project">
+          <input
+            className="form-input"
+            value={newName}
+            onChange={e => { setNewName(e.target.value); setNewError(''); }}
+            placeholder="프로젝트 이름"
+            autoFocus
+          />
+          <div className="color-palette" style={{ marginTop: 8 }}>
+            {PALETTE.map(c => (
+              <button
+                key={c}
+                className={`color-swatch ${newColor === c ? 'selected' : ''}`}
+                style={{ backgroundColor: c }}
+                onClick={() => setNewColor(c)}
+              />
+            ))}
+          </div>
+          {newError && <p className="form-error">{newError}</p>}
+          <div className="inline-new-project-actions">
+            <button className="btn btn-secondary" onClick={() => setShowNewProject(false)}>취소</button>
+            <button className="btn btn-primary" onClick={handleCreateProject}>만들기</button>
+          </div>
+        </div>
+      )}
+
       <div className="form-field">
         <label className="form-label">업무 제목 *</label>
         <input
@@ -107,7 +160,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
           value={title}
           onChange={e => { setTitle(e.target.value); setErrors(prev => ({ ...prev, title: '' })); }}
           placeholder="예: UI 와이어프레임 작성"
-          autoFocus
+          autoFocus={!showNewProject}
         />
         {errors.title && <p className="form-error">{errors.title}</p>}
       </div>
@@ -166,7 +219,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          disabled={projects.length === 0}
+          disabled={projects.length === 0 && !showNewProject}
         >
           {existing ? '저장' : '추가'}
         </button>

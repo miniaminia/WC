@@ -106,6 +106,7 @@ export default function App() {
           members={state.members}
           defaultDate={modal.date}
           onSave={data => state.addTask(data)}
+          onAddProject={state.addProject}
           onClose={closeModal}
         />
       )}
@@ -116,6 +117,7 @@ export default function App() {
           projects={state.projects}
           members={state.members}
           onSave={data => state.updateTask(modal.task.id, data)}
+          onAddProject={state.addProject}
           onClose={closeModal}
         />
       )}

@@ -296,6 +296,21 @@ html, body, #root {
   font-weight: 600;
 }
 
+/* 인라인 새 프로젝트 폼 */
+.inline-new-project {
+  background: #f8f9fc;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+.inline-new-project-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 /* 주말 */
 .fc .fc-daygrid-day.fc-day-weekend {
   background: #f9f9f9 !important;
