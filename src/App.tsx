@@ -27,6 +27,8 @@ export default function App() {
   const [modal, setModal] = useState<ModalState>({ type: 'none' });
   const now = new Date();
   const [viewMonth, setViewMonth] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 });
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const thisMonthColors = state.projects.filter(p => p.createdAt.startsWith(thisMonth)).map(p => p.color);
 
   const closeModal = () => setModal({ type: 'none' });
 
@@ -76,7 +78,7 @@ export default function App() {
 
       {modal.type === 'addProject' && (
         <ProjectModal
-          existingColors={state.projects.map(p => p.color)}
+          existingColors={thisMonthColors}
           onSave={data => state.addProject(data)}
           onClose={closeModal}
         />
@@ -85,7 +87,7 @@ export default function App() {
       {modal.type === 'editProject' && (
         <ProjectModal
           existing={modal.project}
-          existingColors={state.projects.map(p => p.color)}
+          existingColors={thisMonthColors}
           onSave={data => state.updateProject(modal.project.id, data)}
           onClose={closeModal}
         />

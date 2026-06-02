@@ -40,7 +40,9 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
 
   const [showNewProject, setShowNewProject] = useState(false);
   const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState(() => generateProjectColor(projects.map(p => p.color)));
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const thisMonthColors = projects.filter(p => p.createdAt.startsWith(thisMonth)).map(p => p.color);
+  const [newColor, setNewColor] = useState(() => generateProjectColor(thisMonthColors));
   const [newError, setNewError] = useState('');
 
   const filteredMembers = members.filter(m => m.roles.includes(role));
@@ -62,7 +64,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
     if (val === '__new__') {
       setShowNewProject(true);
       setNewName('');
-      setNewColor(generateProjectColor(projects.map(p => p.color)));
+      setNewColor(generateProjectColor(thisMonthColors));
     } else {
       setProjectId(val);
       setErrors(prev => ({ ...prev, projectId: '' }));
