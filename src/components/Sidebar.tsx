@@ -28,7 +28,7 @@ export function Sidebar({ projects, onAddProject, onEditProject, onDeleteProject
         )}
 
         <div className="project-list">
-          {projects.map(p => (
+          {projects.slice(0, 10).map(p => (
             <div key={p.id} className="project-item">
               <div className="project-item-main">
                 <span className="project-dot" style={{ backgroundColor: p.color }} />

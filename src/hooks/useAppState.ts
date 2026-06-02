@@ -25,7 +25,7 @@ export function useAppState() {
   useEffect(() => {
     async function load() {
       const [{ data: projectsData }, { data: tasksData }, { data: membersData }] = await Promise.all([
-        supabase.from('projects').select('*').order('created_at'),
+        supabase.from('projects').select('*').order('created_at', { ascending: false }),
         supabase.from('tasks').select('*').order('created_at'),
         supabase.from('members').select('*'),
       ]);
@@ -54,7 +54,7 @@ export function useAppState() {
     const channel = supabase
       .channel('realtime-all')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
-        const { data } = await supabase.from('projects').select('*').order('created_at');
+        const { data } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
         if (data) setProjects(data.map(p => ({
           id: p.id, name: p.name, color: p.color, createdAt: p.created_at,
         })));
