@@ -16,9 +16,10 @@ interface Props {
   onTaskClick: (task: Task) => void;
   onTaskDrop: (taskId: string, start: string, end: string) => void;
   onMonthChange: (year: number, month: number) => void;
+  onReorder: (taskId: string, direction: 'up' | 'down') => void;
 }
 
-export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop, onMonthChange }: Props) {
+export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop, onMonthChange, onReorder }: Props) {
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const memberMap = Object.fromEntries(members.map(m => [m.id, m]));
 
@@ -45,6 +46,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         role: task.role,
         assigneeName: assignee?.name ?? '',
         projectName: project?.name ?? '',
+        sortOrder: task.sortOrder,
       },
     };
 
@@ -89,6 +91,38 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     onTaskDrop(taskId, start, end);
   };
 
+  const sortedTasks = [...tasks].sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const renderEventContent = (info: { event: { title: string; extendedProps: Record<string, string>; backgroundColor: string; textColor: string } }) => {
+    const { title, extendedProps, textColor } = info.event;
+    const taskId = extendedProps.taskId;
+    const idx = sortedTasks.findIndex(t => t.id === taskId);
+    const canUp = idx > 0;
+    const canDown = idx < sortedTasks.length - 1;
+
+    return (
+      <div className="fc-event-inner" style={{ color: textColor }}>
+        <div className="fc-event-reorder">
+          <button
+            className="fc-reorder-btn"
+            style={{ opacity: canUp ? 1 : 0.3, color: textColor }}
+            onClick={e => { e.stopPropagation(); if (canUp) onReorder(taskId, 'up'); }}
+          >▲</button>
+          <button
+            className="fc-reorder-btn"
+            style={{ opacity: canDown ? 1 : 0.3, color: textColor }}
+            onClick={e => { e.stopPropagation(); if (canDown) onReorder(taskId, 'down'); }}
+          >▼</button>
+        </div>
+        <span className="fc-event-role">[{extendedProps.role}]</span>
+        <span className="fc-event-title">{title}</span>
+        {extendedProps.assigneeName && (
+          <span className="fc-event-assignee"> · {extendedProps.assigneeName}</span>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="calendar-wrapper">
       <FullCalendar
@@ -112,6 +146,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
           const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
           onMonthChange(mid.getFullYear(), mid.getMonth() + 1);
         }}
+        eventOrder={(a, b) => (a.extendedProps?.sortOrder ?? 0) - (b.extendedProps?.sortOrder ?? 0)}
         eventContent={renderEventContent}
         dayMaxEvents={8}
         height="100%"
@@ -127,19 +162,6 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
           return [];
         }}
       />
-    </div>
-  );
-}
-
-function renderEventContent(info: { event: { title: string; extendedProps: Record<string, string>; backgroundColor: string; textColor: string } }) {
-  const { title, extendedProps, textColor } = info.event;
-  return (
-    <div className="fc-event-inner" style={{ color: textColor }}>
-      <span className="fc-event-role">[{extendedProps.role}]</span>
-      <span className="fc-event-title">{title}</span>
-      {extendedProps.assigneeName && (
-        <span className="fc-event-assignee"> · {extendedProps.assigneeName}</span>
-      )}
     </div>
   );
 }

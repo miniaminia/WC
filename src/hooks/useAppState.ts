@@ -34,9 +34,10 @@ export function useAppState() {
         id: p.id, name: p.name, color: p.color, createdAt: p.created_at,
       })));
 
-      if (tasksData) setTasks(tasksData.map(t => ({
+      if (tasksData) setTasks(tasksData.map((t, i) => ({
         id: t.id, projectId: t.project_id, title: t.title, role: t.role,
         assigneeId: t.assignee_id, start: t.start, end: t.end,
+        sortOrder: t.sort_order || new Date(t.created_at).getTime(),
         createdAt: t.created_at, updatedAt: t.updated_at,
       })));
 
@@ -64,6 +65,7 @@ export function useAppState() {
         if (data) setTasks(data.map(t => ({
           id: t.id, projectId: t.project_id, title: t.title, role: t.role,
           assigneeId: t.assignee_id, start: t.start, end: t.end,
+          sortOrder: t.sort_order || new Date(t.created_at).getTime(),
           createdAt: t.created_at, updatedAt: t.updated_at,
         })));
       })
@@ -102,11 +104,13 @@ export function useAppState() {
   const addTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
     const id = uid();
     const now = new Date().toISOString();
+    const sortOrder = Date.now();
     await supabase.from('tasks').insert({
       id, project_id: data.projectId, title: data.title, role: data.role,
       assignee_id: data.assigneeId, start: data.start, end: data.end,
+      sort_order: sortOrder,
     });
-    const task: Task = { ...data, id, createdAt: now, updatedAt: now };
+    const task: Task = { ...data, id, sortOrder, createdAt: now, updatedAt: now };
     setTasks(prev => [...prev, task]);
     return task;
   }, []);
@@ -119,6 +123,24 @@ export function useAppState() {
     }).eq('id', id);
     setTasks(prev => prev.map(t => t.id === id ? { ...t, ...data, updatedAt: new Date().toISOString() } : t));
   }, []);
+
+  const reorderTask = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const sorted = [...tasks].sort((a, b) => a.sortOrder - b.sortOrder);
+    const idx = sorted.findIndex(t => t.id === id);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+    const a = sorted[idx];
+    const b = sorted[swapIdx];
+    await Promise.all([
+      supabase.from('tasks').update({ sort_order: b.sortOrder }).eq('id', a.id),
+      supabase.from('tasks').update({ sort_order: a.sortOrder }).eq('id', b.id),
+    ]);
+    setTasks(prev => prev.map(t => {
+      if (t.id === a.id) return { ...t, sortOrder: b.sortOrder };
+      if (t.id === b.id) return { ...t, sortOrder: a.sortOrder };
+      return t;
+    }));
+  }, [tasks]);
 
   const deleteTask = useCallback(async (id: string) => {
     await supabase.from('tasks').delete().eq('id', id);
@@ -140,7 +162,7 @@ export function useAppState() {
   return {
     projects, tasks, members, filters, setFilters, loading,
     addProject, updateProject, deleteProject,
-    addTask, updateTask, deleteTask,
+    addTask, updateTask, deleteTask, reorderTask,
     addMember, deleteMember,
   };
 }

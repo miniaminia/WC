@@ -23,6 +23,7 @@ export interface Task {
   assigneeId: string;
   start: string; // YYYY-MM-DD
   end: string;   // YYYY-MM-DD (inclusive)
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
