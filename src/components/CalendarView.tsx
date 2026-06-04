@@ -93,29 +93,41 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
   const renderEventContent = (info: { event: { title: string; extendedProps: Record<string, string>; textColor: string } }) => {
     const { title, extendedProps, textColor } = info.event;
     const taskId = extendedProps.taskId;
+    const clickedTask = tasks.find(t => t.id === taskId);
+
+    let prevTaskId: string | null = null;
+    let nextTaskId: string | null = null;
+
+    if (clickedTask) {
+      const sameDayTasks = tasks
+        .filter(t =>
+          t.start <= clickedTask.start && t.end >= clickedTask.start &&
+          filters.roles.includes(t.role) &&
+          (filters.projectIds.length === 0 || filters.projectIds.includes(t.projectId))
+        )
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+
+      const idx = sameDayTasks.findIndex(t => t.id === taskId);
+      prevTaskId = idx > 0 ? sameDayTasks[idx - 1].id : null;
+      nextTaskId = idx < sameDayTasks.length - 1 ? sameDayTasks[idx + 1].id : null;
+    }
 
     return (
-      <div
-        className="fc-event-inner"
-        style={{ color: textColor }}
-        onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
-        onDrop={e => {
-          e.preventDefault();
-          e.stopPropagation();
-          const fromId = e.dataTransfer.getData('taskId');
-          if (fromId && fromId !== taskId) onSwap(fromId, taskId);
-        }}
-      >
-        <div
-          className="fc-drag-handle"
-          style={{ color: textColor }}
-          draggable
-          onDragStart={e => {
-            e.stopPropagation();
-            e.dataTransfer.setData('taskId', taskId);
-            e.dataTransfer.effectAllowed = 'move';
-          }}
-        >⠿</div>
+      <div className="fc-event-inner" style={{ color: textColor }}>
+        <div className="fc-event-reorder">
+          <button
+            className="fc-reorder-btn"
+            style={{ opacity: prevTaskId ? 1 : 0.3, color: textColor }}
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); if (prevTaskId) onSwap(taskId, prevTaskId); }}
+          >▲</button>
+          <button
+            className="fc-reorder-btn"
+            style={{ opacity: nextTaskId ? 1 : 0.3, color: textColor }}
+            onPointerDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); if (nextTaskId) onSwap(taskId, nextTaskId); }}
+          >▼</button>
+        </div>
         <span className="fc-event-role">[{extendedProps.role}]</span>
         <span className="fc-event-title">{title}</span>
         {extendedProps.assigneeName && (
