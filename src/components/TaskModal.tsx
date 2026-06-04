@@ -18,7 +18,7 @@ interface Props {
   members: Member[];
   defaultDate?: string;
   defaultProjectId?: string;
-  onSave: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  onSave: (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>) => void;
   onAddProject: (data: { name: string; color: string }) => Promise<Project>;
   onClose: () => void;
 }

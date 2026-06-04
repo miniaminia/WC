@@ -34,7 +34,7 @@ export function useAppState() {
         id: p.id, name: p.name, color: p.color, createdAt: p.created_at,
       })));
 
-      if (tasksData) setTasks(tasksData.map((t, i) => ({
+      if (tasksData) setTasks(tasksData.map(t => ({
         id: t.id, projectId: t.project_id, title: t.title, role: t.role,
         assigneeId: t.assignee_id, start: t.start, end: t.end,
         sortOrder: t.sort_order || new Date(t.created_at).getTime(),
@@ -101,7 +101,7 @@ export function useAppState() {
   }, []);
 
   // Tasks
-  const addTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addTask = useCallback(async (data: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'sortOrder'>) => {
     const id = uid();
     const now = new Date().toISOString();
     const sortOrder = Date.now();
