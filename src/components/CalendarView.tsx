@@ -16,10 +16,10 @@ interface Props {
   onTaskClick: (task: Task) => void;
   onTaskDrop: (taskId: string, start: string, end: string) => void;
   onMonthChange: (year: number, month: number) => void;
-  onReorder: (taskId: string, direction: 'up' | 'down') => void;
+  onSwap: (fromId: string, toId: string) => void;
 }
 
-export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop, onMonthChange, onReorder }: Props) {
+export function CalendarView({ tasks, projects, members, filters, onDateSelect, onTaskClick, onTaskDrop, onMonthChange, onSwap }: Props) {
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const memberMap = Object.fromEntries(members.map(m => [m.id, m]));
 
@@ -34,6 +34,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     const bgColor = project ? getRoleColor(project.color, task.role) : '#999';
     const textColor = getTextColor(bgColor);
     const assignee = memberMap[task.assigneeId];
+    const orderPrefix = String(task.sortOrder).padStart(20, '0');
 
     const base = {
       title: task.title,
@@ -46,20 +47,18 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
         role: task.role,
         assigneeName: assignee?.name ?? '',
         projectName: project?.name ?? '',
-        sortOrder: task.sortOrder,
       },
     };
 
     const segments = getWorkdaySegments(task.start, task.end);
 
     if (segments.length <= 1) {
-      return [{ ...base, id: task.id, start: task.start, end: toFCEnd(task.end) }];
+      return [{ ...base, id: `${orderPrefix}_${task.id}`, start: task.start, end: toFCEnd(task.end) }];
     }
 
-    // 주말/공휴일 걸치는 경우: 업무일 구간별로 분리, 드래그 비활성화
     return segments.map((seg, i) => ({
       ...base,
-      id: `${task.id}_${i}`,
+      id: `${orderPrefix}_${task.id}_${i}`,
       start: seg.start,
       end: toFCEnd(seg.end),
       editable: false,
@@ -91,29 +90,32 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     onTaskDrop(taskId, start, end);
   };
 
-  const sortedTasks = [...tasks].sort((a, b) => a.sortOrder - b.sortOrder);
-
-  const renderEventContent = (info: { event: { title: string; extendedProps: Record<string, string>; backgroundColor: string; textColor: string } }) => {
+  const renderEventContent = (info: { event: { title: string; extendedProps: Record<string, string>; textColor: string } }) => {
     const { title, extendedProps, textColor } = info.event;
     const taskId = extendedProps.taskId;
-    const idx = sortedTasks.findIndex(t => t.id === taskId);
-    const canUp = idx > 0;
-    const canDown = idx < sortedTasks.length - 1;
 
     return (
-      <div className="fc-event-inner" style={{ color: textColor }}>
-        <div className="fc-event-reorder">
-          <button
-            className="fc-reorder-btn"
-            style={{ opacity: canUp ? 1 : 0.3, color: textColor }}
-            onClick={e => { e.stopPropagation(); if (canUp) onReorder(taskId, 'up'); }}
-          >▲</button>
-          <button
-            className="fc-reorder-btn"
-            style={{ opacity: canDown ? 1 : 0.3, color: textColor }}
-            onClick={e => { e.stopPropagation(); if (canDown) onReorder(taskId, 'down'); }}
-          >▼</button>
-        </div>
+      <div
+        className="fc-event-inner"
+        style={{ color: textColor }}
+        onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+        onDrop={e => {
+          e.preventDefault();
+          e.stopPropagation();
+          const fromId = e.dataTransfer.getData('taskId');
+          if (fromId && fromId !== taskId) onSwap(fromId, taskId);
+        }}
+      >
+        <div
+          className="fc-drag-handle"
+          style={{ color: textColor }}
+          draggable
+          onDragStart={e => {
+            e.stopPropagation();
+            e.dataTransfer.setData('taskId', taskId);
+            e.dataTransfer.effectAllowed = 'move';
+          }}
+        >⠿</div>
         <span className="fc-event-role">[{extendedProps.role}]</span>
         <span className="fc-event-title">{title}</span>
         {extendedProps.assigneeName && (
@@ -146,7 +148,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
           const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
           onMonthChange(mid.getFullYear(), mid.getMonth() + 1);
         }}
-        eventOrder={(a: any, b: any) => (a.extendedProps?.sortOrder ?? 0) - (b.extendedProps?.sortOrder ?? 0)}
+        eventOrder="id"
         eventContent={renderEventContent}
         dayMaxEvents={8}
         height="100%"

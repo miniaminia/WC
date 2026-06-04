@@ -67,7 +67,7 @@ export default function App() {
           onTaskClick={task => setModal({ type: 'viewTask', task })}
           onTaskDrop={(taskId, start, end) => state.updateTask(taskId, { start, end })}
           onMonthChange={(year, month) => setViewMonth({ year, month })}
-          onReorder={state.reorderTask}
+          onSwap={state.swapTasks}
         />
       </main>
 
