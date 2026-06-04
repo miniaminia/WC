@@ -1,7 +1,7 @@
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
-import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg, DatesSetArg, EventApi } from '@fullcalendar/core';
+import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg, DatesSetArg } from '@fullcalendar/core';
 import type { Task, Project, Member, FilterState } from '../types';
 import { getRoleColor, getTextColor } from '../utils/colorUtils';
 import { toFCEnd, toInclusiveEnd } from '../utils/dateUtils';
@@ -146,7 +146,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
           const mid = new Date((arg.start.getTime() + arg.end.getTime()) / 2);
           onMonthChange(mid.getFullYear(), mid.getMonth() + 1);
         }}
-        eventOrder={(a: EventApi, b: EventApi) => (a.extendedProps.sortOrder ?? 0) - (b.extendedProps.sortOrder ?? 0)}
+        eventOrder={(a: any, b: any) => (a.extendedProps?.sortOrder ?? 0) - (b.extendedProps?.sortOrder ?? 0)}
         eventContent={renderEventContent}
         dayMaxEvents={8}
         height="100%"
