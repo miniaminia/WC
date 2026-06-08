@@ -50,6 +50,11 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
       },
     };
 
+    // 기타 역할은 주말 포함 연속 표시
+    if (task.role === '기타') {
+      return [{ ...base, id: `${orderPrefix}_${task.id}`, start: task.start, end: toFCEnd(task.end) }];
+    }
+
     const segments = getWorkdaySegments(task.start, task.end);
 
     if (segments.length <= 1) {
@@ -61,7 +66,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
       id: `${orderPrefix}_${task.id}_${i}`,
       start: seg.start,
       end: toFCEnd(seg.end),
-      editable: i === 0, // 첫 세그먼트만 드래그 가능
+      editable: i === 0,
     }));
   });
 
@@ -80,6 +85,11 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     if (!originalTask) return;
 
     const rawStart = info.event.startStr;
+    if (originalTask.role === '기타') {
+      const rawEnd = info.event.endStr ? toInclusiveEnd(info.event.endStr) : rawStart;
+      onTaskDrop(taskId, rawStart, rawEnd);
+      return;
+    }
     const newStart = adjustStartToWorkday(rawStart);
     const workdays = countWorkdays(originalTask.start, originalTask.end);
     const newEnd = addWorkdays(newStart, workdays);
@@ -92,6 +102,11 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
     if (!originalTask) return;
 
     const rawStart = info.event.startStr;
+    if (originalTask.role === '기타') {
+      const rawEnd = info.event.endStr ? toInclusiveEnd(info.event.endStr) : rawStart;
+      onTaskDrop(taskId, rawStart, rawEnd);
+      return;
+    }
     const newStart = adjustStartToWorkday(rawStart);
     const workdays = countWorkdays(originalTask.start, originalTask.end);
     const newEnd = addWorkdays(newStart, workdays);

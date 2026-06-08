@@ -30,11 +30,11 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
   const [assigneeId, setAssigneeId] = useState(existing?.assigneeId ?? '');
   const [start, setStart] = useState(() => {
     const d = existing?.start ?? defaultDate ?? today();
-    return isNonWorkday(d) ? adjustStartToWorkday(d) : d;
+    return (existing?.role === '기타' || isNonWorkday(d) === false) ? d : adjustStartToWorkday(d);
   });
   const [end, setEnd] = useState(() => {
     const d = existing?.end ?? defaultDate ?? today();
-    return isNonWorkday(d) ? adjustEndToWorkday(d) : d;
+    return (existing?.role === '기타' || isNonWorkday(d) === false) ? d : adjustEndToWorkday(d);
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -194,7 +194,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
             value={start}
             onChange={e => {
               const val = e.target.value;
-              setStart(isNonWorkday(val) ? adjustStartToWorkday(val) : val);
+              setStart(role !== '기타' && isNonWorkday(val) ? adjustStartToWorkday(val) : val);
               setErrors(prev => ({ ...prev, end: '' }));
             }}
           />
@@ -208,7 +208,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
             min={start}
             onChange={e => {
               const val = e.target.value;
-              setEnd(isNonWorkday(val) ? adjustEndToWorkday(val) : val);
+              setEnd(role !== '기타' && isNonWorkday(val) ? adjustEndToWorkday(val) : val);
               setErrors(prev => ({ ...prev, end: '' }));
             }}
           />
