@@ -1,6 +1,6 @@
-export type Role = '기획' | '디자인' | '퍼블리싱' | '오픈일';
+export type Role = '기획' | '디자인' | '퍼블리싱' | '오픈일' | '기타';
 
-export const ROLES: Role[] = ['기획', '디자인', '퍼블리싱', '오픈일'];
+export const ROLES: Role[] = ['기획', '디자인', '퍼블리싱', '오픈일', '기타'];
 
 export interface Member {
   id: string;
