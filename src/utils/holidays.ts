@@ -69,6 +69,29 @@ export function adjustEndToWorkday(date: string): string {
   return toDateStr(d);
 }
 
+// 시작~종료 사이 업무일 수 계산
+export function countWorkdays(startStr: string, endStr: string): number {
+  let count = 0;
+  const current = new Date(startStr + 'T00:00:00');
+  const end = new Date(endStr + 'T00:00:00');
+  while (current <= end) {
+    if (!isNonWorkday(toDateStr(current))) count++;
+    current.setDate(current.getDate() + 1);
+  }
+  return count;
+}
+
+// 시작일로부터 업무일 n개 후의 날짜 계산 (시작일 포함)
+export function addWorkdays(startStr: string, workdays: number): string {
+  let remaining = workdays - 1;
+  const current = new Date(startStr + 'T00:00:00');
+  while (remaining > 0) {
+    current.setDate(current.getDate() + 1);
+    if (!isNonWorkday(toDateStr(current))) remaining--;
+  }
+  return toDateStr(current);
+}
+
 // 날짜 범위를 연속 업무일 구간으로 분리
 export function getWorkdaySegments(startStr: string, endStr: string): Array<{ start: string; end: string }> {
   const segments: Array<{ start: string; end: string }> = [];

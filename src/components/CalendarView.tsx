@@ -5,7 +5,7 @@ import type { EventClickArg, DateSelectArg, EventDropArg, EventChangeArg, DatesS
 import type { Task, Project, Member, FilterState } from '../types';
 import { getRoleColor, getTextColor } from '../utils/colorUtils';
 import { toFCEnd, toInclusiveEnd } from '../utils/dateUtils';
-import { isHoliday, isWeekend, getWorkdaySegments } from '../utils/holidays';
+import { isHoliday, isWeekend, getWorkdaySegments, adjustStartToWorkday, countWorkdays, addWorkdays } from '../utils/holidays';
 
 interface Props {
   tasks: Task[];
@@ -61,7 +61,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
       id: `${orderPrefix}_${task.id}_${i}`,
       start: seg.start,
       end: toFCEnd(seg.end),
-      editable: false,
+      editable: i === 0, // 첫 세그먼트만 드래그 가능
     }));
   });
 
@@ -75,19 +75,27 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
   };
 
   const handleEventDrop = (info: EventDropArg) => {
-    const { event } = info;
-    const taskId = event.extendedProps.taskId as string;
-    const start = event.startStr;
-    const end = event.endStr ? toInclusiveEnd(event.endStr) : start;
-    onTaskDrop(taskId, start, end);
+    const taskId = info.event.extendedProps.taskId as string;
+    const originalTask = tasks.find(t => t.id === taskId);
+    if (!originalTask) return;
+
+    const rawStart = info.event.startStr;
+    const newStart = adjustStartToWorkday(rawStart);
+    const workdays = countWorkdays(originalTask.start, originalTask.end);
+    const newEnd = addWorkdays(newStart, workdays);
+    onTaskDrop(taskId, newStart, newEnd);
   };
 
   const handleEventChange = (info: EventChangeArg) => {
-    const { event } = info;
-    const taskId = event.extendedProps.taskId as string;
-    const start = event.startStr;
-    const end = event.endStr ? toInclusiveEnd(event.endStr) : start;
-    onTaskDrop(taskId, start, end);
+    const taskId = info.event.extendedProps.taskId as string;
+    const originalTask = tasks.find(t => t.id === taskId);
+    if (!originalTask) return;
+
+    const rawStart = info.event.startStr;
+    const newStart = adjustStartToWorkday(rawStart);
+    const workdays = countWorkdays(originalTask.start, originalTask.end);
+    const newEnd = addWorkdays(newStart, workdays);
+    onTaskDrop(taskId, newStart, newEnd);
   };
 
   const renderEventContent = (info: { event: { title: string; extendedProps: Record<string, string>; textColor: string } }) => {
