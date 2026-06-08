@@ -45,7 +45,7 @@ export function TaskModal({ existing, projects, members, defaultDate, defaultPro
   const [newColor, setNewColor] = useState(() => generateProjectColor(thisMonthColors));
   const [newError, setNewError] = useState('');
 
-  const filteredMembers = members.filter(m => m.roles.includes(role));
+  const filteredMembers = role === '기타' ? members : members.filter(m => m.roles.includes(role));
 
   useEffect(() => {
     if (!filteredMembers.find(m => m.id === assigneeId)) {

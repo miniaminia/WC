@@ -40,7 +40,7 @@ export function CalendarView({ tasks, projects, members, filters, onDateSelect, 
       title: task.title,
       allDay: true,
       backgroundColor: bgColor,
-      borderColor: bgColor,
+      borderColor: task.role === '기타' ? '#b0b0b0' : bgColor,
       textColor,
       extendedProps: {
         taskId: task.id,
