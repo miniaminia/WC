@@ -8,11 +8,9 @@ interface Props {
   onEditProject: (project: Project) => void;
   onDeleteProject: (project: Project) => void;
   onOpenMembers: () => void;
-  userEmail?: string;
-  onSignOut?: () => void;
 }
 
-export function Sidebar({ projects, onAddProject, onEditProject, onDeleteProject, onOpenMembers, userEmail, onSignOut }: Props) {
+export function Sidebar({ projects, onAddProject, onEditProject, onDeleteProject, onOpenMembers }: Props) {
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
@@ -73,14 +71,6 @@ export function Sidebar({ projects, onAddProject, onEditProject, onDeleteProject
         <button className="btn btn-ghost" onClick={onOpenMembers}>
           👥 팀원 관리
         </button>
-        {onSignOut && (
-          <div className="sidebar-user">
-            {userEmail && <span className="sidebar-user-email">{userEmail}</span>}
-            <button className="btn btn-ghost" onClick={onSignOut}>
-              로그아웃
-            </button>
-          </div>
-        )}
       </div>
     </aside>
   );

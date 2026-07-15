@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import type { Task, Project } from './types';
 import { useAppState } from './hooks/useAppState';
-import { useAuth } from './hooks/useAuth';
 import { Sidebar } from './components/Sidebar';
 import { FilterBar } from './components/FilterBar';
 import { CalendarView } from './components/CalendarView';
@@ -10,7 +9,6 @@ import { TaskDetailModal } from './components/TaskDetailModal';
 import { ProjectModal } from './components/ProjectModal';
 import { MemberModal } from './components/MemberModal';
 import { ConfirmModal } from './components/ConfirmModal';
-import { LoginScreen } from './components/LoginScreen';
 import './index.css';
 
 type ModalState =
@@ -25,7 +23,6 @@ type ModalState =
   | { type: 'members' };
 
 export default function App() {
-  const auth = useAuth();
   const state = useAppState();
   const [modal, setModal] = useState<ModalState>({ type: 'none' });
   const now = new Date();
@@ -35,16 +32,12 @@ export default function App() {
 
   const closeModal = () => setModal({ type: 'none' });
 
-  if (auth.loading || state.loading) {
+  if (state.loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontSize: 16, color: '#8891a4' }}>
         불러오는 중...
       </div>
     );
-  }
-
-  if (!auth.session) {
-    return <LoginScreen onSignIn={auth.signIn} />;
   }
 
   return (
@@ -55,8 +48,6 @@ export default function App() {
         onEditProject={project => setModal({ type: 'editProject', project })}
         onDeleteProject={project => setModal({ type: 'deleteProject', project })}
         onOpenMembers={() => setModal({ type: 'members' })}
-        userEmail={auth.session.user.email}
-        onSignOut={auth.signOut}
       />
 
       <main className="main">
